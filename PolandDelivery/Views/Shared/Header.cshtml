@@ -1,0 +1,83 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    var connectionString = Configuration["ConnectionStrings:DefaultConnection"];
+    PolandDelivery.Models.MenuModel menuModel = new MenuModel(connectionString);
+    List<PolandDelivery.Models.DBModels.Menu> menu = menuModel.GetMenu();
+}
+<div class="c-container">
+    <nav class="header__inner">
+        <a class="header__logo" asp-action="Index" asp-controller="Home">
+            <img src="../../img/system/logos/DI-logo.png" alt="logo">
+        </a>
+
+        <ul class="nav-menu">
+            @foreach (var iter in menu.Where(w => w.ParentId == null).OrderBy(o => o.Sort).ToList())
+            {
+                List<PolandDelivery.Models.DBModels.Menu> child = menu.Where(w => w.ParentId == iter.Id).OrderBy(o => o.Sort).ToList();
+                <li class="nav-menu__item">
+                    @if (child.Count() == 0)
+                    {
+                        <a class="nav-menu__link" href="@iter.Url">@iter.Name</a>
+                    }
+                    else
+                    {
+                        <p class="nav-menu__link hide-on-mob">@iter.Name</p>
+
+                        <ul class="drop-down">
+                            @foreach (var it in child)
+                            {
+                                <li class="drop-down__item">
+                                    <a class="drop-down__link" href="@it.Url">@it.Name</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </li>
+            }
+        </ul>
+        
+        <div style="color: white;">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div>
+                    @User.Identity.Name
+                </div>
+                <div>
+                    <form method="post" asp-controller="Account" asp-action="Logout">
+                        <input type="submit" style="text-decoration: underline; color: white; cursor: pointer; font-size: 16px;" value="Вийти" />
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <a asp-action="Login" asp-controller="Account">Увійти</a>
+                </div>
+            }
+        </div>
+        
+        <div class="nav-menu__group">
+            <div class="nav-hot-line">
+                <a href="tel:+380675366070" class="nav-hot-line__number">
+                    <img src="../../img/system/icon/phone-call-icon.svg" alt="icon">
+                    <p>+38(067)536-60-70</p>
+                </a>
+                <p class="nav-hot-line__schedule">ПН-ПТ 08:00-18:00</p>
+                <p class="nav-hot-line__schedule">СБ 09:00-15:00</p>
+            </div>
+
+            <div class="mob-menu-btn"></div>
+        </div>
+    </nav>
+
+    <script>
+        // При открытии меню ЛК -- закрывать Моб.меню
+        $(".mob-menu-btn").on('click', function (e) {
+            $(".mob-menu-btn").toggleClass("mob-menu-btn--opened");
+            $(".nav-menu").toggleClass("nav-menu--active");
+            $("#body").toggleClass("no-scroll");
+        })
+    </script>
+</div>
+
+
